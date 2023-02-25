@@ -57,15 +57,110 @@ majority of reviews are 4-5 stars, there are very few 1, 2, 3 star reviews
 
 see distribution of sugar to calorie ratio among all recipes
 
-<iframe src="figures/sug_cal_dist_fig.htm" width=800 height=600 frameBorder=0></iframe>
+<iframe src="figures/sug_cal_dist_fig.html" width=800 height=600 frameBorder=0></iframe>
 
-* grape
-* apple
+majority of recipes have a lower sugar content, with some outliers with extremely high sugar content
+
+### bivariate analysis
+
+looking at relationship between rating and sugar content
+
+<iframe src="figures/rating_sugcal_scatter_fig.html" width=800 height=600 frameBorder=0></iframe>
+
+the data is already more sparse (less reviews) for lower rated recipes (since no one wants to make unpopular, low rated recipes), so we cannot determine a correlation
+
+check distribution of sugar content for low rated vs high rated recipes
+
+<iframe src="figures/low_high_sug_fig.html" width=800 height=600 frameBorder=0></iframe>
+
+the distribution in sugar content between low rated and high rated recipes seem very similar
+
+### grouping EDA, aggregates
+
+do highly rated recipes take shorter or longer than low rated?
+
+| positive or negative   |   minutes |
+|:-----------------------|----------:|
+| Negative               |   98.9261 |
+| Neither                |  133.161  |
+| Positive               |  104.159  |
+
+higher rated recipes seems to take longer
+
+do highly rated recipes have more calories than low rated?
+
+| positive or negative   |   calories |
+|:-----------------------|-----------:|
+| Negative               |    468.513 |
+| Neither                |    465.276 |
+| Positive               |    413.381 |
+
+higher rated recipes seem to have less calories
+
+is there more sugar in highly rated recipes?
+
+| positive or negative   |   sugar to calorie ratio |
+|:-----------------------|-------------------------:|
+| Negative               |                 0.181071 |
+| Neither                |                 0.1693   |
+| Positive               |                 0.166069 |
+
+there seems to be more sugar in recipes in ratings that are more positive
+
+looking at sugar content by rating
+
+|   rating |   sugar to calorie ratio |
+|---------:|-------------------------:|
+|        1 |                 0.188003 |
+|        2 |                 0.172675 |
+|        3 |                 0.162239 |
+|        4 |                 0.155207 |
+|        5 |                 0.168458 |
+
 
 ## ASSESSMENT OF MISSINGNESS
-1. one
-1. two
-1. three
-1. three
+name, date, and rating are primarily the columns with missing values
+we will focus on rating because name and date is not used for our analysis
+
+#### Is the missngness mechanism of ratings MD?
+Missingness of ratings is not MD, since there is no way to tell whether or not the rating will be missing looking at another column
+
+#### Is the missngness mechanism of ratings NMAR?
+in the original interactions dataframe, there are a lot of comments or questions that are not attatched to a rating there are 51832 such non-rating interactions, thus the missing ratings (nans) in the merged dataframe come from the data generating process. users are not required to rate when leaving a comment or question. the missingness does not depend on the rating itself
+missingness of ratings is not NMAR
+
+#### Does missingness depend on other columns? (MAR)
+
+we performed permutation testing on every other column to see if the missingness is random
+the columns it would make sense to test are : minutes, n_steps, n_ingredients, calories, total fat, sugar, sodium, protein, saturated fat, carbohydrates, sugar to calorie ratio, review word count
+
+the test statistic we used for permutation testing is absolute difference in means (of each relavant numerical column when rating is missing vs not missing)
+
+for minutes, the observed test statistic is 51.45237039852127
+
+for calories, it was 69.00722806375853
+
+the p-value for the permutation test on minutes is consistently above 0.05, thus the missingness of ratings does not depend on number of minutes the recipe takes
+
+the p-value for the permutation test on calories is close to zero, so the missingness of ratings does seem to depend on calories statistically, although it is most likely not the cause of missingness, and therefore probabilistic imputation based on calories will not be accurate
+
+distribution of calories when rating is missing vs not missing
+
+<iframe src="figures/cal_missing_fig.html" width=800 height=600 frameBorder=0></iframe>
+
+there does not seem to be a difference in the distribution of calories, based on the figure
 
 ## HYPOTHESIS TESTING
+
+null hypothesis : any observed differences betweeen the distribution of sugar content between highly rated and low rated recipes is due to random chance
+alternative : sugar content is higher in lower rated recipes
+
+result : p value = 0
+
+of our simulated tests, there is almost NO CASES where the difference betweeen the means was the same as or exceeded our observed statistic : 0.015002162907546163
+
+thus, we fail to reject the null hypothesis
+the difference is not statistically negligible
+
+#### Conclusion
+Recipes that are the subject of negative reviews have a higher sugar content than that of positive reviews
